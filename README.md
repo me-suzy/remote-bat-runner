@@ -1,12 +1,19 @@
 # Remote .bat Runner
 
 Trigger a Windows `.bat` file on your laptop from your phone with a single tap,
-even when you're away from home. No port forwarding, no VPN.
+and peek at the most recently downloaded files — even when you're away from
+home. No port forwarding, no VPN.
 
-A tiny Flask web app on the laptop exposes a green **RUN** button via an
-[ngrok](https://ngrok.com) tunnel. Open the URL on your phone, add it to the
-home screen as a PWA, and you have a 1-tap "start this program on my laptop"
-icon.
+A tiny Flask web app on the laptop exposes:
+
+- **`/`** — a big green **RUN** button that starts your `.bat`.
+- **`/files`** — a list of the most recently modified files (e.g. PDFs) and
+  folders at the top level of a chosen directory (e.g. `G:\` or your Downloads
+  folder). Optional — disabled by default.
+
+Both routes run in the same Python process and share the same
+[ngrok](https://ngrok.com) tunnel. Add each URL to your phone's home screen
+as a PWA and you'll have two 1-tap icons.
 
 ## How it works
 
@@ -45,6 +52,9 @@ pip install -r requirements.txt
      [dashboard.ngrok.com/domains](https://dashboard.ngrok.com/domains)
      (e.g. `"your-name.ngrok-free.dev"`) so the URL stays the same across restarts.
      Leave as `None` to get a random URL each launch.
+   - `SCAN_ROOT` — optional. Set to a folder path (e.g. `r"G:\\"` or your
+     Downloads folder) to enable the `/files` page. Leave as `None` to disable.
+     Tweak `SCAN_FILE_EXTS`, `SCAN_FILE_LIMIT`, `SCAN_FOLDER_LIMIT` to taste.
 
 2. **Add your ngrok authtoken.** Grab it from
    [dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
@@ -63,16 +73,18 @@ pip install -r requirements.txt
    start.bat
    ```
 
-   The console prints a line like:
+   The console prints both URLs:
 
    ```
-   PUBLIC URL (open on phone, then Add to Home Screen):
-   https://your-name.ngrok-free.dev/?k=<random-secret>
+   PUBLIC URLs (open on phone, then Add to Home Screen):
+     RUN button page : https://your-name.ngrok-free.dev/?k=<secret>
+     Recent files    : https://your-name.ngrok-free.dev/files?k=<secret>
    ```
 
-5. **On your phone:** open the URL in Chrome/Safari → accept the ngrok warning
-   on first visit → browser menu → **Add to Home Screen**. You now have an app
-   icon. One tap opens the page, one tap on **RUN** launches the `.bat`.
+5. **On your phone:** open each URL in Chrome/Safari → accept the ngrok warning
+   on first visit → browser menu → **Add to Home Screen**. You now have one
+   icon for the RUN button and (optionally) a second icon for the recent-files
+   list.
 
 ## Keeping the laptop awake
 
@@ -106,9 +118,13 @@ powercfg /setactive SCHEME_CURRENT
 
 ## Extending
 
-Want to run multiple scripts? Turn `BAT_PATH` into a dict like
-`{"pdf": r"D:\...\a.bat", "backup": r"D:\...\b.bat"}`, map routes
-`/run/<name>`, and add more buttons to `templates/index.html`.
+- **Multiple scripts.** Turn `BAT_PATH` into a dict like
+  `{"pdf": r"D:\...\a.bat", "backup": r"D:\...\b.bat"}`, map routes
+  `/run/<name>`, and add more buttons to `templates/index.html`.
+- **Recursive scan.** `_latest_pdfs` / `_latest_folders` in `app.py` use
+  `os.scandir` (top-level only) for speed. Swap to `os.walk` if you want to
+  recurse — but cap the depth and add a time budget; scanning a full drive
+  can be very slow.
 
 ## License
 

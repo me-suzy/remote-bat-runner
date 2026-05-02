@@ -14,3 +14,15 @@ PORT = 5000
 
 # Title shown on the phone page.
 APP_TITLE = "Remote Runner"
+
+# --------------------------------------------------------------------------
+# Recent-files browser (the /files page).
+# Shows the most recently modified files (matching SCAN_FILE_EXTS) and the
+# most recently modified subfolders, at the top level of SCAN_ROOT.
+# Set SCAN_ROOT to None to disable the page.
+# --------------------------------------------------------------------------
+
+SCAN_ROOT = None  # e.g. r"G:\\" or r"C:\Users\me\Downloads"
+SCAN_FILE_EXTS = (".pdf",)  # extensions to list (lowercase, with dot)
+SCAN_FILE_LIMIT = 2         # how many recent files to show
+SCAN_FOLDER_LIMIT = 2       # how many recent folders to show
